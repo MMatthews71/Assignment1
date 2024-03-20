@@ -1,39 +1,148 @@
-from __future__ import annotations
 from poke_team import Trainer, PokeTeam
 from typing import Tuple
 from battle_mode import BattleMode
+import random
 
 class Battle:
 
     def __init__(self, trainer_1: Trainer, trainer_2: Trainer, battle_mode: BattleMode, criterion = "health") -> None:
-        raise NotImplementedError
+        self.t_1 = trainer_1
+        self.t_2 = trainer_2
+        self.battle_mode = battle_mode
+        self.teams = None
 
     def commence_battle(self) -> Trainer | None:
-        raise NotImplementedError
-
+        
+        self._create_teams()
+        
+        if self.battle_mode.value == 0:
+            return self.set_battle()
+            
+        elif self.battle_mode.value == 1:
+            return self.rotate_battle()
+            
+        elif self.battle_mode.value == 2:
+            return self.optimise_battle()
+        
     def _create_teams(self) -> Tuple[PokeTeam, PokeTeam]:
-        raise NotImplementedError
+       
+        if self.battle_mode.value == 0:
+            self.teams = (self.t_1.pokemon_team.assemble_team('set'), self.t_2.pokemon_team.assemble_team('set'))
+        elif self.battle_mode.value == 1:
+            self.teams = (self.t_1.pokemon_team.assemble_team('rotating'), self.t_2.pokemon_team.assemble_team('rotating'))
+        elif self.battle_mode.value == 2:
+            self.teams = (self.t_1.pokemon_team.assemble_team('optimise'), self.t_2.pokemon_team.assemble_team('optimise'))
 
     def set_battle(self) -> PokeTeam | None:
-        raise NotImplementedError
+        while not self.teams[0].is_empty() and not self.teams[1].is_empty():
+            mon1 = self.teams[0].pop() 
+            mon2 = self.teams[1].pop()
 
+            if mon1.get_speed() > mon2.get_speed():
+                mon2.defend(mon1.attack(mon2))
+                print(f"{mon1.get_name()} attacks {mon2.get_name()} and its health is lowered to {mon2.get_health()}")
+                self.teams[0].push(mon1)
+                if mon2.get_health() > 0:
+                    self.teams[1].push(mon2)
+                else:
+                    print(f"{mon2.get_name()} fainted")
+            
+            elif mon1.get_speed() < mon2.get_speed():
+                mon1.defend(mon2.attack(mon1))
+                print(f"{mon2.get_name()} attacks {mon1.get_name()} and its health is lowered to {mon1.get_health()}")
+                self.teams[1].push(mon2)
+                if mon1.get_health() > 0:
+                    self.teams[0].push(mon1)
+                else:
+                    print(f"{mon1.get_name()} fainted")
+
+            else:
+                mon1.defend(mon2.attack(mon1))
+                mon2.defend(mon1.attack(mon2))
+                print(f"{mon1.get_name()} attacks {mon2.get_name()}, its health is lowered to {mon2.get_health()}, and {mon2.get_name()} attacks {mon1.get_name()}, its health is lowered to {mon1.get_health()}")
+                
+                if mon1.get_health() > 0:
+                    self.teams[0].push(mon1)
+                else:
+                    print(f"{mon1.get_name()} fainted")
+                
+                if mon2.get_health() > 0:
+                    self.teams[1].push(mon2)
+                else:
+                    print(f"{mon2.get_name()} fainted")
+                 
+        if self.teams[0].is_empty() and self.teams[1].is_empty():
+            return None
+        elif self.teams[0].is_empty() and not self.teams[1].is_empty():
+            return self.t_2 
+        elif not self.teams[0].is_empty() and self.teams[1].is_empty():
+            return self.t_1
+       
     def rotate_battle(self) -> PokeTeam | None:
-        raise NotImplementedError
+        
+        while not self.teams[0].is_empty() and not self.teams[1].is_empty():
+            
+            mon1 = self.teams[0].serve() 
+            mon2 = self.teams[1].serve()
 
+            if mon1.get_speed() > mon2.get_speed():
+                mon2.defend(mon1.attack(mon2))
+                print(f"{mon1.get_name()} attacks {mon2.get_name()} and its health is lowered to {mon2.get_health()}")
+                self.teams[0].append(mon1)
+                if mon2.get_health() > 0:
+                    self.teams[1].append(mon2)
+                else:
+                    print(f"{mon2.get_name()} fainted")
+            
+            elif mon1.get_speed() < mon2.get_speed():
+                mon1.defend(mon2.attack(mon1))
+                print(f"{mon2.get_name()} attacks {mon1.get_name()} and its health is lowered to {mon1.get_health()}")
+                self.teams[1].append(mon2)
+                if mon1.get_health() > 0:
+                    self.teams[0].append(mon1)
+                else:
+                    print(f"{mon1.get_name()} fainted")
+
+            else:
+                mon1.defend(mon2.attack(mon1))
+                mon2.defend(mon1.attack(mon2))
+                print(f"{mon1.get_name()} attacks {mon2.get_name()}, its health is lowered to {mon2.get_health()}, and {mon2.get_name()} attacks {mon1.get_name()}, its health is lowered to {mon1.get_health()}")
+                if mon1.get_health() > 0:
+                    self.teams[0].append(mon1)
+                else:
+                    print(f"{mon1.get_name()} fainted")
+                if mon2.get_health() > 0:
+                    self.teams[1].append(mon2)
+                else:
+                    print(f"{mon2.get_name()} fainted")
+
+        if self.teams[0].is_empty() and self.teams[1].is_empty():
+            return None
+        elif self.teams[0].is_empty() and not self.teams[1].is_empty():
+            return self.t_2 
+        elif not self.teams[0].is_empty() and self.teams[1].is_empty():
+            return self.t_1
+
+        
+        
     def optimise_battle(self) -> PokeTeam | None:
-        raise NotImplementedError
+        pass
 
 
 if __name__ == '__main__':
     t1 = Trainer('Ash')
     t1.pick_team("random")
+    
 
     t2 = Trainer('Gary')
     t2.pick_team('random')
+    #print(t2.get_team())
     b = Battle(t1, t2, BattleMode.ROTATE)
+    
     winner = b.commence_battle()
-
+    
+   
     if winner is None:
-        print("Its a draw")
+       print("Its a draw")
     else:
-        print(f"The winner is {winner.get_name()}")
+       print(f"The winner is {winner.get_name()}")
