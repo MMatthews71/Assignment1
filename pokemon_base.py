@@ -4,44 +4,20 @@ This module contains PokeType, TypeEffectiveness and an abstract version of the 
 from abc import ABC
 from enum import Enum
 from data_structures.referential_array import ArrayR
+import csv
 
-type_effectivenessCSV = open("type_effectiveness.csv", 'r')
-lines = type_effectivenessCSV.readlines()
-#Creates a list with each line in the csv as an element
+with open("type_effectiveness.csv", "r") as csvfile:
+    csvreader = csv.reader(csvfile)
+    next(csvreader)
+    type_effectiveness = list(csvreader)
 
-type_effectiveness_1 = []
-for line in lines:
-    myList = line.split("\n")
-    myList.pop()
-    type_effectiveness_1.append(myList)
-type_effectiveness_1.pop()
-#Removes the '\n' from the end of each line
-    
-type_effectiveness_2 = []
-for list in type_effectiveness_1:
-    myString = list[0]
-    type_effectiveness_2.append(myString)
-#Converts each line into a string from a list
-
-type_effectiveness_3 = []
-for line in type_effectiveness_2:
-    myList = line.split(",")
-    type_effectiveness_3.append(myList)
-#Converts the data in each line into individual strings
-
-header = type_effectiveness_3[0]
-del type_effectiveness_3[0]
-type_effectiveness = []
-for i in type_effectiveness_3:
-    myList = [float(e) for e in i]
-    type_effectiveness.append(myList)
-#Converts all of the necessary strings into floats
-    
+type_effectiveness = [[float(value) for value in row] for row in type_effectiveness]
 
 num_rows = len(type_effectiveness)
 num_columns = len(type_effectiveness[0])
 
 effectiveness_array = ArrayR(num_rows)
+
 for i in range(num_rows):
     effectiveness_array[i] = type_effectiveness[i]
 
@@ -235,6 +211,7 @@ class Pokemon(ABC): # pylint: disable=too-few-public-methods, too-many-instance-
         """
         if self.evolution_line:
             if self.name == self.evolution_line[0]:
+                print(f"{self.name} evolved into {self.evolution_line[1]}!")
                 self.name = self.evolution_line[1]
                 self.battle_power *= 1.5
                 self.health *= 1.5
@@ -242,6 +219,7 @@ class Pokemon(ABC): # pylint: disable=too-few-public-methods, too-many-instance-
                 self.defence *= 1.5
 
             elif self.name == self.evolution_line[1]:
+                print(f"{self.name} evolved into {self.evolution_line[2]}!")
                 self.name = self.evolution_line[2]
                 self.battle_power *= 1.5
                 self.health *= 1.5
