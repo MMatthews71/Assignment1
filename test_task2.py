@@ -5,6 +5,7 @@ from io import StringIO
 import random
 from poke_team import *
 from pokemon import *
+from battle_mode import *
 
 class TestPokeTeam(unittest.TestCase):
     @number("2.1")
